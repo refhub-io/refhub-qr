@@ -54,6 +54,10 @@ exports.handler = async (event) => {
     return err400('url must be a valid URL');
   }
 
+  if (image !== undefined && typeof image !== 'string') {
+    return err400('image must be a base64 string');
+  }
+
   const freedom = clamp(typeof rawFreedom === 'number' ? rawFreedom : 0.5, 0, 1);
   const outputSize = clamp(typeof rawSize === 'number' ? rawSize : 512, 256, 2048);
 
@@ -69,7 +73,7 @@ exports.handler = async (event) => {
       ? await decodeBase64Image(image, N)
       : await rasterizeSvg(DEFAULT_LOGO_SVG, N);
   } catch {
-    return err400('image must be valid base64 PNG, JPG, or SVG');
+    return err400('image must be valid base64 PNG or JPG');
   }
 
   let svg;
