@@ -5,6 +5,7 @@
   from = "/api/generate-qr"
   to = "/.netlify/functions/generate-qr"
   status = 200
+  force = true
 
 [functions]
   node_bundler = "esbuild"
