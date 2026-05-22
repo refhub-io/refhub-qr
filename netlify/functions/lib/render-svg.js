@@ -3,7 +3,6 @@ const { samplePixel } = require('./image-buffer');
 
 const QUIET = 4;        // quiet zone modules on each side (QR spec minimum)
 const LIGHT_MIN = 180;  // minimum luminance for rendered elements to stay visible on dark bg
-const BG = '#111';      // background color baked into every SVG
 
 function isFinderPattern(row, col, N) {
   return (row < 7 && col < 7) ||
@@ -27,7 +26,7 @@ function luminance({ r, g, b }) {
   return 0.299 * r + 0.587 * g + 0.114 * b;
 }
 
-// Scale color up so luminance ≥ LIGHT_MIN, preserving hue, for visibility on dark background.
+// Scale color up so luminance ≥ LIGHT_MIN, preserving hue, for visibility on dark backgrounds.
 function ensureLight({ r, g, b }) {
   const lum = luminance({ r, g, b });
   if (lum >= LIGHT_MIN) return { r, g, b };
@@ -78,9 +77,6 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   const skipBudget = Math.floor(totalDark * 0.25);
   let skipped = 0;
   const parts = [];
-
-  // Dark background baked in
-  parts.push(`<rect width="${size}" height="${size}" fill="${BG}"/>`);
 
   // Finder patterns at TL, TR, BL — always visible regardless of image brightness
   const finders = [[0, 0], [0, N - 7], [N - 7, 0]];
