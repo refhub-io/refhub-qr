@@ -47,6 +47,17 @@ test('renderMosaicSvg returns valid SVG', () => {
   expect(svg).toContain('width="210"');
 });
 
+
+test('renderMosaicSvg keeps the background transparent', () => {
+  const N = 21;
+  const matrix = makeMatrix(N, () => false);
+  const pixelBuf = makeBuffer(N, 168, 85, 247);
+  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
+  expect(svg).not.toContain('<rect');
+  expect(svg).not.toContain('#111');
+  expect(svg).not.toContain('#101010');
+});
+
 test('freedom=0: all dark non-structural modules rendered as circles', () => {
   const N = 21;
   // Only non-structural modules dark, all black (lum=0 → never skipped)
@@ -97,7 +108,7 @@ test('finder patterns are rendered as dot modules', () => {
   const rectCount = (svg.match(/<rect/g) || []).length;
 
   expect(circleCount).toBe(3 * 33); // 24 outer-ring dots + 9 center dots per finder
-  expect(rectCount).toBe(1); // background only; no rectangular finder eyes
+  expect(rectCount).toBe(0); // transparent background; no rectangular finder eyes
 });
 
 test('finder and body dots use one radius for the same matrix scale', () => {
