@@ -1,0 +1,11 @@
+[build]
+  functions = "netlify/functions"
+
+[[redirects]]
+  from = "/api/generate-qr"
+  to = "/.netlify/functions/generate-qr"
+  status = 200
+
+[functions]
+  node_bundler = "esbuild"
+  external_node_modules = ["@resvg/resvg-js"]

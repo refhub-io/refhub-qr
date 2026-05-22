@@ -1,0 +1,21 @@
+{
+  "name": "mosaic-qr",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test": "jest"
+  },
+  "dependencies": {
+    "@resvg/resvg-js": "^2.6.2",
+    "jimp": "^0.22.12",
+    "qrcode": "^1.5.4"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "testMatch": ["**/tests/**/*.test.js"],
+    "testTimeout": 20000
+  }
+}
