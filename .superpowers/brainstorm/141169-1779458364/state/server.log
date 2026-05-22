@@ -1,7 +1,0 @@
-{"type":"server-started","port":55684,"host":"127.0.0.1","url_host":"localhost","url":"http://localhost:55684","screen_dir":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/content","state_dir":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/state"}
-{"type":"screen-added","file":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/content/rendering-style.html"}
-{"source":"user-event","type":"click","text":"+\n      \n        \n        \n        \n        \n        \n        \n        \n        \n        \n        \n        \n      \n    \n    \n      Support Both Modes\n      Build the tool to support both rendering styles as options — user picks color-mosaic or halftone-embed at generation time. More work upfront but a more versatile tool.","choice":"both","id":null,"timestamp":1779458477449}
-{"type":"screen-added","file":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/content/waiting-1.html"}
-{"type":"screen-added","file":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/content/waiting-2.html"}
-{"type":"screen-added","file":"/home/velitchko/Projects/mosaic-qr/.superpowers/brainstorm/141169-1779458364/content/freedom-param.html"}
-{"type":"server-stopped","reason":"idle timeout"}
