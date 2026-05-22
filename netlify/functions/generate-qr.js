@@ -25,6 +25,18 @@ exports.handler = async (event) => {
     return { statusCode: 200, headers: CORS, body: '' };
   }
 
+  if (event.httpMethod !== 'POST') {
+    return {
+      statusCode: 405,
+      headers: { ...CORS, 'Allow': 'POST, OPTIONS', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ error: 'Method not allowed' })
+    };
+  }
+
+  if (event.body && event.body.length > 1_500_000) {
+    return err400('Request body too large');
+  }
+
   let body;
   try { body = JSON.parse(event.body || '{}'); }
   catch { return err400('Request body must be valid JSON'); }
@@ -32,6 +44,15 @@ exports.handler = async (event) => {
   const { url, image, freedom: rawFreedom, size: rawSize } = body;
 
   if (!url || typeof url !== 'string') return err400('url is required');
+
+  try {
+    const parsed = new URL(url);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return err400('url must use http or https protocol');
+    }
+  } catch {
+    return err400('url must be a valid URL');
+  }
 
   const freedom = clamp(typeof rawFreedom === 'number' ? rawFreedom : 0.5, 0, 1);
   const outputSize = clamp(typeof rawSize === 'number' ? rawSize : 512, 256, 2048);
@@ -51,7 +72,12 @@ exports.handler = async (event) => {
     return err400('image must be valid base64 PNG, JPG, or SVG');
   }
 
-  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom });
+  let svg;
+  try {
+    svg = renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom });
+  } catch {
+    return { statusCode: 500, headers: { ...CORS, 'Content-Type': 'application/json' }, body: JSON.stringify({ error: 'Render failed' }) };
+  }
 
   return {
     statusCode: 200,

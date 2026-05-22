@@ -57,3 +57,17 @@ test('custom size is respected in SVG output', async () => {
   expect(res.statusCode).toBe(200);
   expect(res.body).toContain('width="300"');
 });
+
+test('non-POST method returns 405', async () => {
+  const res = await handler({ httpMethod: 'GET' });
+  expect(res.statusCode).toBe(405);
+});
+
+test('javascript: URL returns 400', async () => {
+  const res = await handler({
+    httpMethod: 'POST',
+    body: JSON.stringify({ url: 'javascript:alert(1)' }),
+    headers: { 'content-type': 'application/json' }
+  });
+  expect(res.statusCode).toBe(400);
+});
