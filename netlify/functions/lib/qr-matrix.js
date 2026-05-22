@@ -2,6 +2,7 @@
 const QRCode = require('qrcode');
 
 function generateMatrix(url) {
+  if (typeof url !== 'string' || url.length === 0) throw new TypeError('url must be a non-empty string');
   const qr = QRCode.create(url, { errorCorrectionLevel: 'H' });
   const N = qr.modules.size;
   const matrix = [];

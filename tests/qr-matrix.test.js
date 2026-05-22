@@ -28,3 +28,8 @@ test('top-left finder outer ring is all dark', () => {
 test('throws on empty string', () => {
   expect(() => generateMatrix('')).toThrow();
 });
+
+test('throws on non-string input', () => {
+  expect(() => generateMatrix(null)).toThrow(TypeError);
+  expect(() => generateMatrix(undefined)).toThrow(TypeError);
+});
