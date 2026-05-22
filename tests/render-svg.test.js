@@ -55,12 +55,12 @@ test('freedom=0: all dark non-structural modules rendered as circles', () => {
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
   const circleCount = (svg.match(/<circle/g) || []).length;
   expect(circleCount).toBeGreaterThan(0);
-  // Count expected dark non-structural modules
+  // Count expected dark non-structural modules plus the three dot-style finder patterns.
   let expected = 0;
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
       if (!isStructural(r, c, N)) expected++;
-  expect(circleCount).toBe(expected);
+  expect(circleCount).toBe(expected + 3 * 33);
 });
 
 test('freedom=1: white image skips up to 25% of dark modules', () => {
@@ -85,15 +85,55 @@ test('freedom=1: dark image modules are NOT skipped', () => {
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
       if (!isStructural(r, c, N)) expected++;
-  expect(circleCount).toBe(expected); // zero modules skipped — dark pixels never qualify
+  expect(circleCount).toBe(expected + 3 * 33); // zero data modules skipped; finders stay visible
 });
 
-test('finder patterns rendered as rects not circles', () => {
+test('finder patterns are rendered as dot modules', () => {
+  const N = 21;
+  const matrix = makeMatrix(N, () => false);
+  const pixelBuf = makeBuffer(N, 168, 85, 247);
+  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
+  const circleCount = (svg.match(/<circle/g) || []).length;
+  const rectCount = (svg.match(/<rect/g) || []).length;
+
+  expect(circleCount).toBe(3 * 33); // 24 outer-ring dots + 9 center dots per finder
+  expect(rectCount).toBe(1); // background only; no rectangular finder eyes
+});
+
+test('finder and body dots use one radius for the same matrix scale', () => {
   const N = 21;
   const matrix = makeMatrix(N, () => true);
   const pixelBuf = makeBuffer(N, 168, 85, 247);
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
-  expect(svg).toContain('<rect');
+
+  const radii = [...svg.matchAll(/<circle[^>]+ r="([0-9.]+)"/g)].map(match => match[1]);
+  expect(radii.length).toBeGreaterThan(3 * 33);
+  expect(new Set(radii)).toEqual(new Set(['3.26']));
+});
+
+test('dot radius scales uniformly with larger QR matrices', () => {
+  const smallN = 21;
+  const largeN = 37;
+  const pixelBufSmall = makeBuffer(smallN, 168, 85, 247);
+  const pixelBufLarge = makeBuffer(largeN, 168, 85, 247);
+
+  const smallSvg = renderMosaicSvg({
+    matrix: makeMatrix(smallN, () => true),
+    pixelBuf: pixelBufSmall,
+    outputSize: 210,
+    freedom: 0,
+  });
+  const largeSvg = renderMosaicSvg({
+    matrix: makeMatrix(largeN, () => true),
+    pixelBuf: pixelBufLarge,
+    outputSize: 210,
+    freedom: 0,
+  });
+
+  const uniqueRadii = svg => new Set([...svg.matchAll(/<circle[^>]+ r="([0-9.]+)"/g)].map(match => match[1]));
+
+  expect(uniqueRadii(smallSvg)).toEqual(new Set(['3.26']));
+  expect(uniqueRadii(largeSvg)).toEqual(new Set(['2.10']));
 });
 
 test('structural dark modules (timing, format info) are rendered as circles', () => {
@@ -116,8 +156,8 @@ test('structural dark modules (timing, format info) are rendered as circles', ()
       else nonStructuralDark++;
     }
   }
-  // All dark → circles = non-structural + timing/format info (finder patterns are rects)
-  expect(circleCount).toBe(nonStructuralDark + timingFormatDark);
+  // All dark → circles = non-structural + timing/format info + dot-style finders.
+  expect(circleCount).toBe(nonStructuralDark + timingFormatDark + 3 * 33);
   expect(timingFormatDark).toBeGreaterThan(0);
 });
 

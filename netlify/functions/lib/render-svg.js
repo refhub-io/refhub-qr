@@ -39,16 +39,24 @@ function ensureLight({ r, g, b }) {
   };
 }
 
-function renderFinderPattern(r0, c0, ms, offset, color) {
+function renderFinderPattern(r0, c0, ms, offset, dotRadius, color) {
   const fill = `rgb(${color.r},${color.g},${color.b})`;
   const x = v => v.toFixed(1);
-  const ox = offset + c0 * ms;
-  const oy = offset + r0 * ms;
-  return (
-    `<rect x="${x(ox)}" y="${x(oy)}" width="${x(7*ms)}" height="${x(7*ms)}" rx="${x(ms*0.5)}" fill="${fill}"/>` +
-    `<rect x="${x(ox+ms)}" y="${x(oy+ms)}" width="${x(5*ms)}" height="${x(5*ms)}" rx="${x(ms*0.3)}" fill="${BG}"/>` +
-    `<rect x="${x(ox+2*ms)}" y="${x(oy+2*ms)}" width="${x(3*ms)}" height="${x(3*ms)}" rx="${x(ms*0.2)}" fill="${fill}"/>`
-  );
+  const parts = [];
+
+  for (let dr = 0; dr < 7; dr++) {
+    for (let dc = 0; dc < 7; dc++) {
+      const isOuterRing = dr === 0 || dr === 6 || dc === 0 || dc === 6;
+      const isCenter = dr >= 2 && dr <= 4 && dc >= 2 && dc <= 4;
+      if (!isOuterRing && !isCenter) continue;
+
+      const cx = x(offset + (c0 + dc) * ms + ms / 2);
+      const cy = x(offset + (r0 + dr) * ms + ms / 2);
+      parts.push(`<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="${fill}"/>`);
+    }
+  }
+
+  return parts.join('');
 }
 
 function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
@@ -57,7 +65,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   // Fit the QR grid inside outputSize with QUIET-module border on each side
   const ms = size / (N + QUIET * 2);
   const offset = QUIET * ms;
-  const r_dot = (ms * 0.45).toFixed(2);
+  const dotRadius = (ms * 0.45).toFixed(2);
   const f = Math.max(0, Math.min(1, freedom));
   // threshold > 255 when f=0 so nothing is ever skipped at freedom=0
   const threshold = f === 0 ? 256 : (1 - f) * 255;
@@ -80,7 +88,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
     const centerCol = c0 === 0 ? 3 : N - 4;
     const centerRow = r0 === 0 ? 3 : N - 4;
     const color = ensureLight(samplePixel(pixelBuf, centerCol, centerRow));
-    parts.push(renderFinderPattern(r0, c0, ms, offset, color));
+    parts.push(renderFinderPattern(r0, c0, ms, offset, dotRadius, color));
   }
 
   // Data modules
@@ -96,7 +104,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
       const color = ensureLight(rawColor);
       const cx = (offset + col * ms + ms / 2).toFixed(1);
       const cy = (offset + row * ms + ms / 2).toFixed(1);
-      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r_dot}" fill="rgb(${color.r},${color.g},${color.b})"/>`);
+      parts.push(`<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="rgb(${color.r},${color.g},${color.b})"/>`);
     }
   }
 
