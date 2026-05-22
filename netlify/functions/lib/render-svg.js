@@ -86,9 +86,10 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   // Data modules
   for (let row = 0; row < N; row++) {
     for (let col = 0; col < N; col++) {
-      if (!matrix[row][col] || isStructural(row, col, N)) continue;
+      if (!matrix[row][col] || isFinderPattern(row, col, N)) continue;
       const rawColor = samplePixel(pixelBuf, col, row);
-      if (luminance(rawColor) > threshold && skipped < skipBudget) {
+      // Structural modules (timing, format info) are never subject to the skip budget
+      if (!isStructural(row, col, N) && luminance(rawColor) > threshold && skipped < skipBudget) {
         skipped++;
         continue;
       }

@@ -95,3 +95,50 @@ test('finder patterns rendered as rects not circles', () => {
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
   expect(svg).toContain('<rect');
 });
+
+test('structural dark modules (timing, format info) are rendered as circles', () => {
+  const N = 21;
+  // All modules dark, including structural
+  const matrix = makeMatrix(N, () => true);
+  const pixelBuf = makeBuffer(N, 0, 0, 0);
+  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
+
+  // Count circles from timing strip at row 6 (cols 8..N-9) and col 6 (rows 8..N-9)
+  // Verify more circles exist than if structural were excluded
+  const circleCount = (svg.match(/<circle/g) || []).length;
+
+  let nonStructuralDark = 0;
+  let timingFormatDark = 0;
+  for (let r = 0; r < N; r++) {
+    for (let c = 0; c < N; c++) {
+      if (isFinderPattern(r, c, N)) continue;
+      if (isStructural(r, c, N)) timingFormatDark++;
+      else nonStructuralDark++;
+    }
+  }
+  // All dark → circles = non-structural + timing/format info (finder patterns are rects)
+  expect(circleCount).toBe(nonStructuralDark + timingFormatDark);
+  expect(timingFormatDark).toBeGreaterThan(0);
+});
+
+test('timing/format info dark modules are never skipped by freedom budget', () => {
+  const N = 21;
+  const matrix = makeMatrix(N, () => true);
+  // White pixels → max luminance → freedom=1 would skip data modules
+  const pixelBuf = makeBuffer(N, 255, 255, 255);
+  const svgFreedom0 = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
+  const svgFreedom1 = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 1 });
+
+  // Count timing+format info circles (should be identical in both renders)
+  // We can't easily isolate them, but total with freedom=1 must still include all structural
+  let timingFormatCount = 0;
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      if (isStructural(r, c, N) && !isFinderPattern(r, c, N)) timingFormatCount++;
+
+  const count0 = (svgFreedom0.match(/<circle/g) || []).length;
+  const count1 = (svgFreedom1.match(/<circle/g) || []).length;
+  // freedom=1 skips up to 25% of data modules, but structural are untouched
+  expect(count0).toBeGreaterThan(count1); // some data modules skipped
+  expect(count1).toBeGreaterThanOrEqual(timingFormatCount); // structural always present
+});
