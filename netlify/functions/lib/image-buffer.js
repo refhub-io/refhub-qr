@@ -18,8 +18,8 @@ async function decodeBase64Image(base64, N) {
   return { data: img.bitmap.data, width: img.bitmap.width, height: img.bitmap.height };
 }
 
-function samplePixel(pixelBuf, col, row, N) {
-  const idx = (row * N + col) * 4;
+function samplePixel(pixelBuf, col, row) {
+  const idx = (row * pixelBuf.width + col) * 4;
   const a = pixelBuf.data[idx + 3] / 255;
   return {
     r: Math.round(pixelBuf.data[idx]     * a + 255 * (1 - a)),
