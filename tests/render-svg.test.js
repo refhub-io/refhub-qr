@@ -55,12 +55,12 @@ test('freedom=0: all dark non-structural modules rendered as circles', () => {
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
   const circleCount = (svg.match(/<circle/g) || []).length;
   expect(circleCount).toBeGreaterThan(0);
-  // Count expected dark non-structural modules
+  // Count expected dark non-structural modules plus the three dot-style finder patterns.
   let expected = 0;
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
       if (!isStructural(r, c, N)) expected++;
-  expect(circleCount).toBe(expected);
+  expect(circleCount).toBe(expected + 3 * 33);
 });
 
 test('freedom=1: white image skips up to 25% of dark modules', () => {
@@ -85,15 +85,19 @@ test('freedom=1: dark image modules are NOT skipped', () => {
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
       if (!isStructural(r, c, N)) expected++;
-  expect(circleCount).toBe(expected); // zero modules skipped — dark pixels never qualify
+  expect(circleCount).toBe(expected + 3 * 33); // zero data modules skipped; finders stay visible
 });
 
-test('finder patterns rendered as rects not circles', () => {
+test('finder patterns are rendered as dot modules', () => {
   const N = 21;
-  const matrix = makeMatrix(N, () => true);
+  const matrix = makeMatrix(N, () => false);
   const pixelBuf = makeBuffer(N, 168, 85, 247);
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
-  expect(svg).toContain('<rect');
+  const circleCount = (svg.match(/<circle/g) || []).length;
+  const rectCount = (svg.match(/<rect/g) || []).length;
+
+  expect(circleCount).toBe(3 * 33); // 24 outer-ring dots + 9 center dots per finder
+  expect(rectCount).toBe(1); // background only; no rectangular finder eyes
 });
 
 test('structural dark modules (timing, format info) are rendered as circles', () => {
@@ -116,8 +120,8 @@ test('structural dark modules (timing, format info) are rendered as circles', ()
       else nonStructuralDark++;
     }
   }
-  // All dark → circles = non-structural + timing/format info (finder patterns are rects)
-  expect(circleCount).toBe(nonStructuralDark + timingFormatDark);
+  // All dark → circles = non-structural + timing/format info + dot-style finders.
+  expect(circleCount).toBe(nonStructuralDark + timingFormatDark + 3 * 33);
   expect(timingFormatDark).toBeGreaterThan(0);
 });
 
