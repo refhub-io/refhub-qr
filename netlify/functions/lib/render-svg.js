@@ -39,10 +39,9 @@ function ensureLight({ r, g, b }) {
   };
 }
 
-function renderFinderPattern(r0, c0, ms, offset, color) {
+function renderFinderPattern(r0, c0, ms, offset, dotRadius, color) {
   const fill = `rgb(${color.r},${color.g},${color.b})`;
   const x = v => v.toFixed(1);
-  const r = (ms * 0.46).toFixed(2);
   const parts = [];
 
   for (let dr = 0; dr < 7; dr++) {
@@ -53,7 +52,7 @@ function renderFinderPattern(r0, c0, ms, offset, color) {
 
       const cx = x(offset + (c0 + dc) * ms + ms / 2);
       const cy = x(offset + (r0 + dr) * ms + ms / 2);
-      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${fill}"/>`);
+      parts.push(`<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="${fill}"/>`);
     }
   }
 
@@ -66,7 +65,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   // Fit the QR grid inside outputSize with QUIET-module border on each side
   const ms = size / (N + QUIET * 2);
   const offset = QUIET * ms;
-  const r_dot = (ms * 0.45).toFixed(2);
+  const dotRadius = (ms * 0.45).toFixed(2);
   const f = Math.max(0, Math.min(1, freedom));
   // threshold > 255 when f=0 so nothing is ever skipped at freedom=0
   const threshold = f === 0 ? 256 : (1 - f) * 255;
@@ -89,7 +88,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
     const centerCol = c0 === 0 ? 3 : N - 4;
     const centerRow = r0 === 0 ? 3 : N - 4;
     const color = ensureLight(samplePixel(pixelBuf, centerCol, centerRow));
-    parts.push(renderFinderPattern(r0, c0, ms, offset, color));
+    parts.push(renderFinderPattern(r0, c0, ms, offset, dotRadius, color));
   }
 
   // Data modules
@@ -105,7 +104,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
       const color = ensureLight(rawColor);
       const cx = (offset + col * ms + ms / 2).toFixed(1);
       const cy = (offset + row * ms + ms / 2).toFixed(1);
-      parts.push(`<circle cx="${cx}" cy="${cy}" r="${r_dot}" fill="rgb(${color.r},${color.g},${color.b})"/>`);
+      parts.push(`<circle cx="${cx}" cy="${cy}" r="${dotRadius}" fill="rgb(${color.r},${color.g},${color.b})"/>`);
     }
   }
 

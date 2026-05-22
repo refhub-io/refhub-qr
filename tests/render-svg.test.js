@@ -100,6 +100,42 @@ test('finder patterns are rendered as dot modules', () => {
   expect(rectCount).toBe(1); // background only; no rectangular finder eyes
 });
 
+test('finder and body dots use one radius for the same matrix scale', () => {
+  const N = 21;
+  const matrix = makeMatrix(N, () => true);
+  const pixelBuf = makeBuffer(N, 168, 85, 247);
+  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
+
+  const radii = [...svg.matchAll(/<circle[^>]+ r="([0-9.]+)"/g)].map(match => match[1]);
+  expect(radii.length).toBeGreaterThan(3 * 33);
+  expect(new Set(radii)).toEqual(new Set(['3.26']));
+});
+
+test('dot radius scales uniformly with larger QR matrices', () => {
+  const smallN = 21;
+  const largeN = 37;
+  const pixelBufSmall = makeBuffer(smallN, 168, 85, 247);
+  const pixelBufLarge = makeBuffer(largeN, 168, 85, 247);
+
+  const smallSvg = renderMosaicSvg({
+    matrix: makeMatrix(smallN, () => true),
+    pixelBuf: pixelBufSmall,
+    outputSize: 210,
+    freedom: 0,
+  });
+  const largeSvg = renderMosaicSvg({
+    matrix: makeMatrix(largeN, () => true),
+    pixelBuf: pixelBufLarge,
+    outputSize: 210,
+    freedom: 0,
+  });
+
+  const uniqueRadii = svg => new Set([...svg.matchAll(/<circle[^>]+ r="([0-9.]+)"/g)].map(match => match[1]));
+
+  expect(uniqueRadii(smallSvg)).toEqual(new Set(['3.26']));
+  expect(uniqueRadii(largeSvg)).toEqual(new Set(['2.10']));
+});
+
 test('structural dark modules (timing, format info) are rendered as circles', () => {
   const N = 21;
   // All modules dark, including structural
