@@ -58,7 +58,7 @@ exports.handler = async (event) => {
     return err400('image must be a base64 string');
   }
 
-  const freedom = clamp(typeof rawFreedom === 'number' ? rawFreedom : 0.5, 0, 1);
+  const freedom = clamp(typeof rawFreedom === 'number' ? rawFreedom : 0, 0, 1);
   const outputSize = clamp(typeof rawSize === 'number' ? rawSize : 512, 256, 2048);
 
   let matrix;

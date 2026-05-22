@@ -1,5 +1,5 @@
 'use strict';
-const { renderMosaicSvg, isFinderPattern } = require('../netlify/functions/lib/render-svg');
+const { renderMosaicSvg, isFinderPattern, isStructural } = require('../netlify/functions/lib/render-svg');
 
 function makeMatrix(N, darkFn) {
   return Array.from({ length: N }, (_, row) =>
@@ -47,25 +47,25 @@ test('renderMosaicSvg returns valid SVG', () => {
   expect(svg).toContain('width="210"');
 });
 
-test('freedom=0: all dark non-finder modules rendered as circles', () => {
+test('freedom=0: all dark non-structural modules rendered as circles', () => {
   const N = 21;
-  // Only non-finder modules dark, all black (lum=0 → never skipped)
-  const matrix = makeMatrix(N, (r, c) => !isFinderPattern(r, c, N));
+  // Only non-structural modules dark, all black (lum=0 → never skipped)
+  const matrix = makeMatrix(N, (r, c) => !isStructural(r, c, N));
   const pixelBuf = makeBuffer(N, 0, 0, 0); // black
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
   const circleCount = (svg.match(/<circle/g) || []).length;
   expect(circleCount).toBeGreaterThan(0);
-  // Count expected dark non-finder modules
+  // Count expected dark non-structural modules
   let expected = 0;
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
-      if (!isFinderPattern(r, c, N)) expected++;
+      if (!isStructural(r, c, N)) expected++;
   expect(circleCount).toBe(expected);
 });
 
 test('freedom=1: white image skips up to 25% of dark modules', () => {
   const N = 21;
-  const matrix = makeMatrix(N, (r, c) => !isFinderPattern(r, c, N));
+  const matrix = makeMatrix(N, (r, c) => !isStructural(r, c, N));
   const pixelBuf = makeBuffer(N, 255, 255, 255); // all white → all bright
   const svgFull = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 0 });
   const svgFree = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 1 });
@@ -77,14 +77,14 @@ test('freedom=1: white image skips up to 25% of dark modules', () => {
 
 test('freedom=1: dark image modules are NOT skipped', () => {
   const N = 21;
-  const matrix = makeMatrix(N, (r, c) => !isFinderPattern(r, c, N));
+  const matrix = makeMatrix(N, (r, c) => !isStructural(r, c, N));
   const pixelBuf = makeBuffer(N, 0, 0, 0); // all black → lum=0, should never skip
   const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 1 });
   const circleCount = (svg.match(/<circle/g) || []).length;
   let expected = 0;
   for (let r = 0; r < N; r++)
     for (let c = 0; c < N; c++)
-      if (!isFinderPattern(r, c, N)) expected++;
+      if (!isStructural(r, c, N)) expected++;
   expect(circleCount).toBe(expected); // zero modules skipped — dark pixels never qualify
 });
 
