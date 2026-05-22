@@ -23,7 +23,8 @@ function renderFinderPattern(r0, c0, ms, color) {
 
 function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   const N = matrix.length;
-  const ms = outputSize / N;
+  const size = Math.round(Math.max(1, Number(outputSize)));
+  const ms = size / N;
   const r_dot = (ms * 0.45).toFixed(2);
   const f = Math.max(0, Math.min(1, freedom));
   // threshold > 255 when f=0 so nothing is ever skipped at freedom=0
@@ -38,7 +39,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
   let skipped = 0;
   const parts = [];
 
-  parts.push(`<rect width="${outputSize}" height="${outputSize}" fill="white"/>`);
+  parts.push(`<rect width="${size}" height="${size}" fill="white"/>`);
 
   // Finder patterns at TL, TR, BL
   const finders = [[0, 0], [0, N - 7], [N - 7, 0]];
@@ -54,7 +55,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
     for (let col = 0; col < N; col++) {
       if (!matrix[row][col] || isFinderPattern(row, col, N)) continue;
       const color = samplePixel(pixelBuf, col, row);
-      if (luminance(color) >= threshold && skipped < skipBudget) {
+      if (luminance(color) > threshold && skipped < skipBudget) {
         skipped++;
         continue;
       }
@@ -64,7 +65,7 @@ function renderMosaicSvg({ matrix, pixelBuf, outputSize, freedom }) {
     }
   }
 
-  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${outputSize} ${outputSize}" width="${outputSize}" height="${outputSize}">${parts.join('')}</svg>`;
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${size} ${size}" width="${size}" height="${size}">${parts.join('')}</svg>`;
 }
 
 module.exports = { renderMosaicSvg, isFinderPattern };

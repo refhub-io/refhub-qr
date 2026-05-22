@@ -75,6 +75,19 @@ test('freedom=1: white image skips up to 25% of dark modules', () => {
   expect(countFree).toBeGreaterThanOrEqual(Math.floor(countFull * 0.75));
 });
 
+test('freedom=1: dark image modules are NOT skipped', () => {
+  const N = 21;
+  const matrix = makeMatrix(N, (r, c) => !isFinderPattern(r, c, N));
+  const pixelBuf = makeBuffer(N, 0, 0, 0); // all black → lum=0, should never skip
+  const svg = renderMosaicSvg({ matrix, pixelBuf, outputSize: 210, freedom: 1 });
+  const circleCount = (svg.match(/<circle/g) || []).length;
+  let expected = 0;
+  for (let r = 0; r < N; r++)
+    for (let c = 0; c < N; c++)
+      if (!isFinderPattern(r, c, N)) expected++;
+  expect(circleCount).toBe(expected); // zero modules skipped — dark pixels never qualify
+});
+
 test('finder patterns rendered as rects not circles', () => {
   const N = 21;
   const matrix = makeMatrix(N, () => true);
